@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Xtra.ServiceHost</AssemblyName>
+    <RootNamespace>Xtra.ServiceHost</RootNamespace>
+    <Copyright>Copyright © Xxtra Research Pty Ltd 2018</Copyright>
+    <Description>Xtra.ServiceHost bootstrapper</Description>
+    <Company>Xtra Insights</Company>
+    <Authors>Michael Monsour</Authors>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.8.0" />
+    <PackageReference Include="DasMulli.Win32.ServiceUtils" Version="1.2.0" />
+    <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
+    <PackageReference Include="Serilog" Version="2.6.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.4.1" />
+  </ItemGroup>
+
+</Project>
