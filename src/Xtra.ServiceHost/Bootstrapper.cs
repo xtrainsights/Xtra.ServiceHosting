@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,15 +23,17 @@ namespace Xtra.ServiceHost
     {
 
         public Bootstrapper()
-            : this(new DefaultConfig(), Assembly.GetEntryAssembly())
+            : this(new ServiceConfig())
         {
         }
 
 
-        public Bootstrapper(IServiceConfig config, params Assembly[] assemblies)
+        public Bootstrapper(IServiceConfig config, params Assembly[] workerAssemblies)
         {
             _config = config;
-            _assemblies = assemblies;
+            _assemblies = !workerAssemblies.Any()
+                ? new[] { Assembly.GetEntryAssembly() }
+                : workerAssemblies;
         }
 
 
@@ -72,17 +75,25 @@ namespace Xtra.ServiceHost
                             return 0;
                         }
 
+                    case "/pause":
+                        using (var sc = new ServiceController(_config.Name)) {
+                            PauseService(sc, _config);
+                            return 0;
+                        }
+
+                    case "/resume":
+                        using (var sc = new ServiceController(_config.Name)) {
+                            ResumeService(sc, _config);
+                            return 0;
+                        }
+
                     case "/c":
                     case "/w":
                         consoleMode = true;
                         break;
 
                     default:
-                        Log.Debug("Interactive {Value}", Environment.UserInteractive);
-                        Log.Debug("IsAttached {Value}", Debugger.IsAttached);
-                        Log.Debug("AppDomain {Value}", AppDomain.CurrentDomain.FriendlyName);
-                        consoleMode = Environment.UserInteractive || Debugger.IsAttached || AppDomain.CurrentDomain.FriendlyName.EndsWith(".vshost.exe");
-                        consoleMode = false;
+                        consoleMode = Process.GetCurrentProcess().SessionId > 0 || Debugger.IsAttached || AppDomain.CurrentDomain.FriendlyName.EndsWith(".vshost.exe");
                         break;
                 }
 
@@ -91,17 +102,18 @@ namespace Xtra.ServiceHost
                     : RunServiceMode();
 
             } catch (Exception ex) {
-                return ExceptionHandling.Handle(this, ex, "Error bootstrapping services");
+                Log.Error(ex, "Error bootstrapping services");
+                return GetWin32ErrorCode(ex);
             }
         }
 
 
         public int RunConsoleMode()
-            => new ServiceRunner(_assemblies).RunConsoleMode();
+            => new ServiceRunner(_config, _assemblies).RunConsoleMode();
 
 
         public int RunServiceMode()
-            => new ServiceRunner(_assemblies).RunServiceMode();
+            => new ServiceRunner(_config, _assemblies).RunServiceMode();
 
 
         private static void ReinstallService(ServiceController sc, IServiceConfig config)
@@ -176,7 +188,6 @@ namespace Xtra.ServiceHost
                 sc.Stop();
                 sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromMilliseconds(1000));
                 Log.Information("Successfully stopped service {Service}", config.Name);
-
             } else {
                 Log.Information("Service {Service} is already stopped or stop is pending.", config.Name);
             }
@@ -190,26 +201,26 @@ namespace Xtra.ServiceHost
                 sc.WaitForStatus(ServiceControllerStatus.Paused, TimeSpan.FromMilliseconds(1000));
                 Log.Information("Successfully paused service {Service}", config.Name);
             } else {
-                Log.Information("Service {Service} is already paused or stop is pending.", config.Name);
+                Log.Information("Service {Service} is already paused or pause is pending.", config.Name);
             }
         }
 
 
-        private static void ContinueService(ServiceController sc, IServiceConfig config)
+        private static void ResumeService(ServiceController sc, IServiceConfig config)
         {
             if (sc.Status != ServiceControllerStatus.Running && sc.Status != ServiceControllerStatus.ContinuePending) {
                 sc.Continue();
                 sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMilliseconds(1000));
-                Log.Information("Successfully stopped service {Service}", config.Name);
+                Log.Information("Successfully resumed service {Service}", config.Name);
             } else {
-                Log.Information("Service {Service} is already stopped or stop is pending.", config.Name);
+                Log.Information("Service {Service} is already running or continue is pending.", config.Name);
             }
         }
 
 
         private static void StartService(ServiceController sc, IServiceConfig config)
         {
-            if (sc.Status != ServiceControllerStatus.StartPending && sc.Status != ServiceControllerStatus.Running) {
+            if (sc.Status != ServiceControllerStatus.Running && sc.Status != ServiceControllerStatus.StartPending) {
                 sc.Start();
                 sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMilliseconds(1000));
                 Log.Information("Successfully started service {Service}", config.Name);
@@ -235,6 +246,12 @@ namespace Xtra.ServiceHost
 
             return $"{host} {String.Join(" ", extraArguments)}";
         }
+
+
+        private static int GetWin32ErrorCode(Exception ex)
+            => (ex as Win32Exception)?.ErrorCode
+               ?? (ex.InnerException as Win32Exception)?.ErrorCode
+               ?? -1;
 
 
         private readonly IServiceConfig _config;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Xtra.ServiceHost
 {
 
-    public abstract class ServiceWorker : IAsyncServiceWorker
+    public abstract class ServiceWorker : IServiceWorker
     {
 
         protected ServiceWorker()
@@ -18,15 +18,23 @@ namespace Xtra.ServiceHost
             => CancellationTokenSource = cancellationTokenSource;
 
 
-        public virtual Task OnStart(params string[] args)
+        public virtual Task Initialize(params string[] args)
             => Task.CompletedTask;
 
 
-        public virtual Task Run()
+        public virtual Task Start()
             => Task.CompletedTask;
 
 
-        public virtual Task OnStop()
+        public virtual Task Stop()
+            => Task.CompletedTask;
+
+
+        public virtual Task Pause()
+            => Task.CompletedTask;
+
+
+        public virtual Task Resume()
             => Task.CompletedTask;
 
 

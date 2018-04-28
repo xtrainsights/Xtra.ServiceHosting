@@ -13,33 +13,41 @@ namespace Xtra.ServiceHost.Internals
     public class ServiceRunner
     {
 
-        public ServiceRunner(params Assembly[] assemblies)
+        public ServiceRunner(IServiceConfig config, params Assembly[] assemblies)
         {
             var builder = new ContainerBuilder();
             builder.RegisterAssemblyTypes(assemblies)
-                .Where(t => t.IsAssignableTo<IAsyncServiceWorker>() && !t.IsAbstract)
+                .Where(t => t.IsAssignableTo<IServiceWorker>() && !t.IsAbstract)
                 .AsImplementedInterfaces()
                 .InstancePerLifetimeScope();
             _container = builder.Build();
+            _config = config;
         }
 
 
         public int RunServiceMode()
         {
             Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            var service = new AppService(_container.Resolve<IEnumerable<Lazy<IAsyncServiceWorker>>>());
-            return new Win32ServiceHost(service).Run();
+            var workers = _container.Resolve<IEnumerable<Lazy<IServiceWorker>>>();
+
+            var host = _config.Pausable
+                ? new Win32ServiceHost(new AppPausableService(_config.Name, workers))
+                : new Win32ServiceHost(new AppService(_config.Name, workers));
+
+            return host.Run();
         }
 
 
         public int RunConsoleMode()
         {
             Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            var service = new AppConsole(_container.Resolve<IEnumerable<Lazy<IAsyncServiceWorker>>>());
+            var workers = _container.Resolve<IEnumerable<Lazy<IServiceWorker>>>();
+            var service = new AppConsole(_config.Name, workers);
             return service.RunAsync().GetAwaiter().GetResult();
         }
 
 
+        private readonly IServiceConfig _config;
         private readonly IContainer _container;
 
     }

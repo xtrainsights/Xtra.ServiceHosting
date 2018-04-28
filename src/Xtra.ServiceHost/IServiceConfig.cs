@@ -11,6 +11,7 @@ namespace Xtra.ServiceHost
         string DisplayName { get; }
         string Description { get; }
         bool StartImmediately { get; }
+        bool Pausable { get; }
         string Username { get; }
         string Password { get; }
         Win32ServiceCredentials DefaultCred { get; }

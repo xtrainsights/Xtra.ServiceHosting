@@ -18,24 +18,24 @@ namespace Xtra.ServiceHost.Internals
         public string ServiceName { get; }
 
         
-        public AppService(IEnumerable<Lazy<IAsyncServiceWorker>> workers)
+        public AppService(string serviceName, IEnumerable<Lazy<IServiceWorker>> workers)
         {
-            ServiceName = AppMetadata.Title.Value;
-            _workers = workers;
+            ServiceName = serviceName;
+            Workers = workers;
         }
 
 
         public void Start(string[] startupArguments, ServiceStoppedCallback serviceStoppedCallback)
         {
             try {
-                Log.Information("Starting {Service}...", AppMetadata.Title.Value);
-                foreach (var worker in _workers) {
+                Log.Information("Starting {Service}...", ServiceName);
+                foreach (var worker in Workers) {
                     ThreadPool.QueueUserWorkItem(state => {
                         async Task RunWorker()
                         {
                             try {
-                                await worker.Value.OnStart(startupArguments);
-                                await worker.Value.Run();
+                                await worker.Value.Initialize(startupArguments);
+                                await worker.Value.Start();
                             } catch (OperationCanceledException) {
                             } catch (Exception ex) {
                                 Log.Error(ex, ex.Message);
@@ -54,16 +54,16 @@ namespace Xtra.ServiceHost.Internals
         public void Stop()
         {
             try {
-                Log.Information("Stopping {Service}...", AppMetadata.Title.Value);
-                Task.WhenAll(_workers.Select(x => x.Value.OnStop())).GetAwaiter().GetResult();
+                Log.Information("Stopping {Service}...", ServiceName);
+                Task.WhenAll(Workers.Select(x => x.Value.Stop())).GetAwaiter().GetResult();
             } catch (Exception ex) {
                 Log.Error(ex, ex.Message);
             }
-            Log.Information("Finished running {Service}", AppMetadata.Title.Value);
+            Log.Information("Finished running {Service}", ServiceName);
         }
 
 
-        private readonly IEnumerable<Lazy<IAsyncServiceWorker>> _workers;
+        protected readonly IEnumerable<Lazy<IServiceWorker>> Workers;
 
 
         private static readonly ILogger Log = Serilog.Log.ForContext<AppService>();

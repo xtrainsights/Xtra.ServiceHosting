@@ -12,31 +12,35 @@ namespace Xtra.ServiceHost.Internals
     internal class AppConsole
     {
 
-        public AppConsole(IEnumerable<Lazy<IAsyncServiceWorker>> workers)
+        public string ServiceName { get; }
+
+
+        public AppConsole(string serviceName, IEnumerable<Lazy<IServiceWorker>> workers)
         {
-            _workers = workers;
+            ServiceName = serviceName;
+            Workers = workers;
         }
 
 
         public async Task<int> RunAsync()
         {
             try {
-                Log.Information("Starting {Service}... Press ESC to stop", AppMetadata.Title.Value);
-                var tasks = _workers.Select(x => x.Value.OnStart());
+                Log.Information("Starting {Service}... Press ESC to stop", ServiceName);
+                var tasks = Workers.Select(x => x.Value.Initialize());
                 await Task.WhenAll(tasks);
 
-                Log.Information("Started running {Service}", AppMetadata.Title.Value);
-                var runningTasks = Task.WhenAll(_workers.Select(x => x.Value.Run()));
+                Log.Information("Started running {Service}", ServiceName);
+                var runningTasks = Task.WhenAll(Workers.Select(x => x.Value.Start()));
                 WaitForEscape();
 
-                Log.Information("Stopping {Service}...", AppMetadata.Title.Value);
-                await Task.WhenAll(_workers.Select(x => x.Value.OnStop()));
+                Log.Information("Stopping {Service}...", ServiceName);
+                await Task.WhenAll(Workers.Select(x => x.Value.Stop()));
 
                 await runningTasks;
 
             } catch (OperationCanceledException) {
             } finally {
-                Log.Information("Finished running {Service}", AppMetadata.Title.Value);
+                Log.Information("Finished running {Service}", ServiceName);
             }
 
             return 0;
@@ -49,7 +53,7 @@ namespace Xtra.ServiceHost.Internals
         }
 
 
-        private readonly IEnumerable<Lazy<IAsyncServiceWorker>> _workers;
+        protected readonly IEnumerable<Lazy<IServiceWorker>> Workers;
 
 
         private static readonly ILogger Log = Serilog.Log.ForContext<AppConsole>();
