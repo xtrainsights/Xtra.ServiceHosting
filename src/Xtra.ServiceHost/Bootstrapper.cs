@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.ServiceProcess;
-using System.Threading;
 
-using DasMulli.Win32.ServiceUtils;
-
-using Microsoft.Extensions.PlatformAbstractions;
+using Polly;
 
 using Serilog;
 
+using Xtra.ServiceHost.Exceptions;
 using Xtra.ServiceHost.Internals;
 
 
@@ -22,16 +18,11 @@ namespace Xtra.ServiceHost
     public class Bootstrapper
     {
 
-        public Bootstrapper()
-            : this(new ServiceConfig())
+        public Bootstrapper(IServiceConfig config = null, Assembly[] workerAssemblies = null, ISyncPolicy retryPolicy = null)
         {
-        }
-
-
-        public Bootstrapper(IServiceConfig config, params Assembly[] workerAssemblies)
-        {
-            _config = config;
-            _assemblies = !workerAssemblies.Any()
+            _config = config ?? new ServiceConfig();
+            _policy = retryPolicy ?? DefaultRetryPolicy;
+            _assemblies = workerAssemblies == null || !workerAssemblies.Any()
                 ? new[] { Assembly.GetEntryAssembly() }
                 : workerAssemblies;
         }
@@ -42,59 +33,62 @@ namespace Xtra.ServiceHost
             try {
                 bool consoleMode;
 
-                switch ((args.FirstOrDefault() ?? "").ToLowerInvariant()) {
-                    case "/?":
-                        Log.Information("Starts the {AppTitle}.\n\n{AppPath} [/I | /U | /W]",
-                            AppMetadata.Title.Value,
-                            Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location));
-                        return 0;
-
-                    case "/i":
-                    case "/install":
-                        using (var sc = new ServiceController(_config.Name)) {
-                            InstallService(sc, _config);
+                using (var serviceManager = new ServiceManager(_config)) {
+                    var sm = serviceManager;
+                    switch ((args.FirstOrDefault() ?? "").ToLowerInvariant()) {
+                        case "/?":
+                            Log.Information(
+                                "Starts the {AppTitle}.\n\n{AppPath} [/I | /U | /W]",
+                                AppMetadata.Title.Value,
+                                Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location));
                             return 0;
-                        }
 
-                    case "/u":
-                    case "/uninstall":
-                        using (var sc = new ServiceController(_config.Name)) {
-                            UninstallService(sc, _config);
+                        case "/i":
+                        case "/install":
+                            var reinstallPolicy = Policy
+                                .Handle<AlreadyInstalledException>()
+                                .Fallback(() => {
+                                    sm.StopService();
+                                    sm.UninstallService();
+                                    sm.InstallService();
+                                });
+                            _policy
+                                .Wrap(reinstallPolicy)
+                                .Execute(() => sm.InstallService());
                             return 0;
-                        }
 
-                    case "/start":
-                        using (var sc = new ServiceController(_config.Name)) {
-                            StartService(sc, _config);
+                        case "/u":
+                        case "/uninstall":
+                            sm.UninstallService();
                             return 0;
-                        }
 
-                    case "/stop":
-                        using (var sc = new ServiceController(_config.Name)) {
-                            StopService(sc, _config);
+                        case "/start":
+                            sm.StartService();
                             return 0;
-                        }
 
-                    case "/pause":
-                        using (var sc = new ServiceController(_config.Name)) {
-                            PauseService(sc, _config);
+                        case "/stop":
+                            sm.StopService();
                             return 0;
-                        }
 
-                    case "/resume":
-                        using (var sc = new ServiceController(_config.Name)) {
-                            ResumeService(sc, _config);
+                        case "/pause":
+                            sm.PauseService();
                             return 0;
-                        }
 
-                    case "/c":
-                    case "/w":
-                        consoleMode = true;
-                        break;
+                        case "/resume":
+                            sm.ResumeService();
+                            return 0;
 
-                    default:
-                        consoleMode = Process.GetCurrentProcess().SessionId > 0 || Debugger.IsAttached || AppDomain.CurrentDomain.FriendlyName.EndsWith(".vshost.exe");
-                        break;
+                        case "/c":
+                        case "/w":
+                            consoleMode = true;
+                            break;
+
+                        default:
+                            consoleMode = Process.GetCurrentProcess().SessionId > 0
+                                || AppDomain.CurrentDomain.FriendlyName.EndsWith(".vshost.exe")
+                                || Debugger.IsAttached;
+                            break;
+                    }
                 }
 
                 return consoleMode
@@ -116,137 +110,6 @@ namespace Xtra.ServiceHost
             => new ServiceRunner(_config, _assemblies).RunServiceMode();
 
 
-        private static void ReinstallService(ServiceController sc, IServiceConfig config)
-        {
-            StopService(sc, config);
-            UninstallService(sc, config);
-            InstallService(sc, config);
-        }
-
-
-        private static void InstallService(ServiceController sc, IServiceConfig config, int counter = 0)
-        {
-            try {
-                var serviceDef = new ServiceDefinition(config.Name, GetServiceCommand(config.ExtraArguments)) {
-                    Description = config.Description,
-                    AutoStart = true,
-                    DisplayName = config.DisplayName,
-                    Credentials = !String.IsNullOrEmpty(config.Username)
-                        ? new Win32ServiceCredentials(config.Username, config.Password)
-                        : config.DefaultCred
-                };
-
-                var manager = new Win32ServiceManager();
-                manager.CreateService(serviceDef, config.StartImmediately);
-                Log.Information("Successfully installed {Service}", config.Name);
-
-            } catch (Exception e) when (e.Message.Contains("already exists")) {
-                Log.Information("Service {Service} was already installed. Reinstalling...", config.Name);
-                ReinstallService(sc, config);
-
-            } catch (Exception e) when (e.Message.Contains("The specified service has been marked for deletion")) {
-                if (counter < 10) {
-                    Thread.Sleep(500);
-                    counter++;
-                    string suffix = "th";
-                    switch (counter) {
-                        case 1: suffix = "st"; break;
-                        case 2: suffix = "nd"; break;
-                        case 3: suffix = "rd"; break;
-                    }
-                    Log.Warning("The specified service has been marked for deletion. Retrying {Attempt} time", counter + suffix);
-                    InstallService(sc, config, counter);
-                    return;
-                }
-                throw;
-            }
-        }
-
-
-        private static void UninstallService(ServiceController sc, IServiceConfig config)
-        {
-            try {
-                if (sc.Status != ServiceControllerStatus.Stopped && sc.Status != ServiceControllerStatus.StopPending) {
-                    StopService(sc, config);
-                }
-
-                new Win32ServiceManager().DeleteService(config.Name);
-                Log.Information("Successfully unregistered service {Service}", config.Name);
-
-            } catch (InvalidOperationException e) when (e.Message.Contains("was not found on computer")) {
-                Log.Warning("Service {Service} does not exist. No action taken.", config.Name);
-
-            } catch (Exception e) when (e.Message.Contains("does not exist")) {
-                Log.Warning("Service {Service} does not exist. No action taken.", config.Name);
-            }
-        }
-
-
-        private static void StopService(ServiceController sc, IServiceConfig config)
-        {
-            if (sc.Status != ServiceControllerStatus.Stopped && sc.Status != ServiceControllerStatus.StopPending) {
-                sc.Stop();
-                sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromMilliseconds(1000));
-                Log.Information("Successfully stopped service {Service}", config.Name);
-            } else {
-                Log.Information("Service {Service} is already stopped or stop is pending.", config.Name);
-            }
-        }
-
-
-        private static void PauseService(ServiceController sc, IServiceConfig config)
-        {
-            if (sc.Status != ServiceControllerStatus.Paused && sc.Status != ServiceControllerStatus.PausePending) {
-                sc.Pause();
-                sc.WaitForStatus(ServiceControllerStatus.Paused, TimeSpan.FromMilliseconds(1000));
-                Log.Information("Successfully paused service {Service}", config.Name);
-            } else {
-                Log.Information("Service {Service} is already paused or pause is pending.", config.Name);
-            }
-        }
-
-
-        private static void ResumeService(ServiceController sc, IServiceConfig config)
-        {
-            if (sc.Status != ServiceControllerStatus.Running && sc.Status != ServiceControllerStatus.ContinuePending) {
-                sc.Continue();
-                sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMilliseconds(1000));
-                Log.Information("Successfully resumed service {Service}", config.Name);
-            } else {
-                Log.Information("Service {Service} is already running or continue is pending.", config.Name);
-            }
-        }
-
-
-        private static void StartService(ServiceController sc, IServiceConfig config)
-        {
-            if (sc.Status != ServiceControllerStatus.Running && sc.Status != ServiceControllerStatus.StartPending) {
-                sc.Start();
-                sc.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMilliseconds(1000));
-                Log.Information("Successfully started service {Service}", config.Name);
-            } else {
-                Log.Information("Service {Service} is already running or start is pending.", config.Name);
-            }
-        }
-
-
-        private static string GetServiceCommand(List<string> extraArguments)
-        {
-            var host = Process.GetCurrentProcess().MainModule.FileName;
-
-            if (host.EndsWith("dotnet.exe", StringComparison.OrdinalIgnoreCase)) {
-                var app = PlatformServices.Default.Application;
-                var appPath = Path.Combine(app.ApplicationBasePath, app.ApplicationName + ".dll");
-                host = $"\"{host}\" \"{appPath}\"";
-
-            } else {
-                //For self-contained apps, skip the dll path
-                extraArguments = extraArguments.Skip(1).ToList();
-            }
-
-            return $"{host} {String.Join(" ", extraArguments)}";
-        }
-
 
         private static int GetWin32ErrorCode(Exception ex)
             => (ex as Win32Exception)?.ErrorCode
@@ -254,8 +117,20 @@ namespace Xtra.ServiceHost
                ?? -1;
 
 
-        private readonly IServiceConfig _config;
         private readonly Assembly[] _assemblies;
+        private readonly IServiceConfig _config;
+        private readonly ISyncPolicy _policy;
+
+
+        private static readonly ISyncPolicy DefaultRetryPolicy
+            = Policy
+                .Handle<MarkedForDeletionException>()
+                .WaitAndRetry(
+                    10,
+                    x => TimeSpan.FromSeconds(1),
+                    (exception, timeSpan, retryCount, context) =>
+                        Log.Warning("The specified service has been marked for deletion. Retry attempt {RetryAttempt}", retryCount)
+                );
 
 
         private static readonly ILogger Log = Serilog.Log.ForContext<Bootstrapper>();
