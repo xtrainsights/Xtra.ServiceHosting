@@ -6,14 +6,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
-using System.Threading;
 
 using DasMulli.Win32.ServiceUtils;
 
 using Microsoft.Extensions.PlatformAbstractions;
 
+using Polly;
+
 using Serilog;
 
+using Xtra.ServiceHost.Exceptions;
 using Xtra.ServiceHost.Internals;
 
 
@@ -23,13 +25,14 @@ namespace Xtra.ServiceHost
     {
 
         public Bootstrapper()
-            : this(new ServiceConfig())
+            : this(new ServiceConfig(), DefaultRetryPolicy)
         {
         }
 
 
-        public Bootstrapper(IServiceConfig config, params Assembly[] workerAssemblies)
+        public Bootstrapper(IServiceConfig config, ISyncPolicy retryPolicy, params Assembly[] workerAssemblies)
         {
+            _policy = retryPolicy;
             _config = config;
             _assemblies = !workerAssemblies.Any()
                 ? new[] { Assembly.GetEntryAssembly() }
@@ -52,7 +55,15 @@ namespace Xtra.ServiceHost
                     case "/i":
                     case "/install":
                         using (var sc = new ServiceController(_config.Name)) {
-                            InstallService(sc, _config);
+                            var ctrl = sc;
+                            var reinstallPolicy = Policy
+                                .Handle<AlreadyInstalledException>()
+                                .Fallback(() => {
+                                    StopService(ctrl, _config);
+                                    UninstallService(ctrl, _config);
+                                    InstallService(ctrl, _config);
+                                });
+                            reinstallPolicy.Wrap(_policy).Execute(() => InstallService(ctrl, _config));
                             return 0;
                         }
 
@@ -116,15 +127,7 @@ namespace Xtra.ServiceHost
             => new ServiceRunner(_config, _assemblies).RunServiceMode();
 
 
-        private static void ReinstallService(ServiceController sc, IServiceConfig config)
-        {
-            StopService(sc, config);
-            UninstallService(sc, config);
-            InstallService(sc, config);
-        }
-
-
-        private static void InstallService(ServiceController sc, IServiceConfig config, int counter = 0)
+        private static void InstallService(ServiceController sc, IServiceConfig config)
         {
             try {
                 var serviceDef = new ServiceDefinition(config.Name, GetServiceCommand(config.ExtraArguments)) {
@@ -141,24 +144,10 @@ namespace Xtra.ServiceHost
                 Log.Information("Successfully installed {Service}", config.Name);
 
             } catch (Exception e) when (e.Message.Contains("already exists")) {
-                Log.Information("Service {Service} was already installed. Reinstalling...", config.Name);
-                ReinstallService(sc, config);
+                throw new AlreadyInstalledException(e);
 
             } catch (Exception e) when (e.Message.Contains("The specified service has been marked for deletion")) {
-                if (counter < 10) {
-                    Thread.Sleep(500);
-                    counter++;
-                    string suffix = "th";
-                    switch (counter) {
-                        case 1: suffix = "st"; break;
-                        case 2: suffix = "nd"; break;
-                        case 3: suffix = "rd"; break;
-                    }
-                    Log.Warning("The specified service has been marked for deletion. Retrying {Attempt} time", counter + suffix);
-                    InstallService(sc, config, counter);
-                    return;
-                }
-                throw;
+                throw new MarkedForDeletionException(e);
             }
         }
 
@@ -256,8 +245,20 @@ namespace Xtra.ServiceHost
 
         private readonly IServiceConfig _config;
         private readonly Assembly[] _assemblies;
+        private readonly ISyncPolicy _policy;
 
 
+        private static readonly ISyncPolicy DefaultRetryPolicy
+            = Policy
+                .Handle<MarkedForDeletionException>()
+                .WaitAndRetry(
+                    10, 
+                    x => TimeSpan.FromSeconds(1),
+                    (exception, timeSpan, retryCount, context) =>
+                        Log.Warning("The specified service has been marked for deletion. Retry attempt {RetryAttempt}", retryCount)
+                );
+
+        
         private static readonly ILogger Log = Serilog.Log.ForContext<Bootstrapper>();
 
     }
