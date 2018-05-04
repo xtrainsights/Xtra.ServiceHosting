@@ -10,7 +10,7 @@ using DasMulli.Win32.ServiceUtils;
 namespace Xtra.ServiceHost.Internals
 {
 
-    public class ServiceRunner
+    internal class ServiceRunner
     {
 
         public ServiceRunner(IServiceConfig config, params Assembly[] assemblies)
