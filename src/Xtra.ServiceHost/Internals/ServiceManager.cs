@@ -29,10 +29,13 @@ namespace Xtra.ServiceHost.Internals
         public void InstallService()
         {
             try {
+                var failureActionRestart = new ScAction { Type = ScActionType.ScActionRestart };
+
                 var serviceDef = new ServiceDefinition(_config.Name, GetServiceCommand(_config.ExtraArguments)) {
                     Description = _config.Description,
                     AutoStart = true,
                     DisplayName = _config.DisplayName,
+                    FailureActions = new ServiceFailureActions(TimeSpan.Zero, null, null, new []{ failureActionRestart }),
                     Credentials = !String.IsNullOrEmpty(_config.Username)
                         ? new Win32ServiceCredentials(_config.Username, _config.Password)
                         : _config.DefaultCred
