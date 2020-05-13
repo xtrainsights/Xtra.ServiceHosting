@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
+using Azure.Core;
+using Azure.Identity;
+
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 using Xtra.ServiceHost.Helpers;
 
@@ -13,23 +14,32 @@ namespace Xtra.ServiceHost.Extensions
 
     public static class ConfigurationBuilderExtensions
     {
-        public static IConfigurationBuilder ConfigureAzureKeyVault(this IConfigurationBuilder self, string keyVault, AADSettings aadSettings)
+        public static IConfigurationBuilder AddAzureKeyVault(this IConfigurationBuilder self, string keyVault, AADSettings aadSettings)
         {
             if (String.IsNullOrEmpty(keyVault)) {
                 return self;
             }
 
+            var keyVaultUri = Uri.IsWellFormedUriString(keyVault, UriKind.Absolute)
+                ? new Uri(keyVault)
+                : new Uri($"https://{keyVault}.vault.azure.net/");
+
+            var creds = new List<TokenCredential>();
+
             if (!String.IsNullOrEmpty(aadSettings.CertThumbprint)) {
                 var cert = CertHelper.TryFindCertificate(aadSettings.CertThumbprint);
-                self.AddAzureKeyVault(keyVault, aadSettings.ClientId, cert);
+                creds.Add(new ClientCertificateCredential(aadSettings.TenantId, aadSettings.ClientId, cert));
+
             } else if (!String.IsNullOrEmpty(aadSettings.ClientSecret)) {
-                self.AddAzureKeyVault(keyVault, aadSettings.ClientId, aadSettings.ClientSecret);
+                creds.Add(new ClientSecretCredential(aadSettings.TenantId, aadSettings.ClientId, aadSettings.ClientSecret));
+
             } else {
-                var tokenProvider = new AzureServiceTokenProvider();
-                var tokenCallback = new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback);
-                var kvc = new KeyVaultClient(tokenCallback);
-                self.AddAzureKeyVault(keyVault, kvc, new DefaultKeyVaultSecretManager());
+                creds.Add(new DefaultAzureCredential(aadSettings.Interactive));
             }
+
+            var cred = new ChainedTokenCredential(creds.ToArray());
+
+            self.AddAzureKeyVault(keyVaultUri, cred);
 
             return self;
         }
