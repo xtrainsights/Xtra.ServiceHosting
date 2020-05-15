@@ -2,6 +2,9 @@
 
 using Microsoft.Extensions.Configuration;
 
+using Xtra.Common.Abstractions.Models.Settings;
+using Xtra.Common.Identity;
+
 
 namespace Xtra.ServiceHost.Extensions
 {
