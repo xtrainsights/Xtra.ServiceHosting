@@ -11,10 +11,10 @@ namespace Xtra.ServiceHost.Extensions
 
     public static class ConfigurationBuilderExtensions
     {
-        public static IConfigurationBuilder AddAzureKeyVault(this IConfigurationBuilder self, string keyVault, AADSettings aadSettings)
+        public static IConfigurationBuilder AddAzureKeyVault(this IConfigurationBuilder configurationBuilder, string keyVault, AADSettings aadSettings = null)
         {
             if (String.IsNullOrEmpty(keyVault)) {
-                return self;
+                return configurationBuilder;
             }
 
             var keyVaultUri = Uri.IsWellFormedUriString(keyVault, UriKind.Absolute)
@@ -23,9 +23,7 @@ namespace Xtra.ServiceHost.Extensions
 
             var cred = new AADCredential(aadSettings);
 
-            self.AddAzureKeyVault(keyVaultUri, cred);
-
-            return self;
+            return configurationBuilder.AddAzureKeyVault(keyVaultUri, cred);
         }
     }
 

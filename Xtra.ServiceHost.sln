@@ -12,6 +12,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{537F85B9-1358-4C0A-B2F5-3993E92C9CC8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DDE23613-810C-4666-80A7-FCA3C504A895}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtra.ServiceHost.Tests", "tests\Xtra.ServiceHost.Tests\Xtra.ServiceHost.Tests.csproj", "{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,9 +28,17 @@ Global
 		{29BF4467-BFF1-4BEB-910E-1C8E3FC34D61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{29BF4467-BFF1-4BEB-910E-1C8E3FC34D61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{29BF4467-BFF1-4BEB-910E-1C8E3FC34D61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{29BF4467-BFF1-4BEB-910E-1C8E3FC34D61} = {537F85B9-1358-4C0A-B2F5-3993E92C9CC8}
+		{CF57F98B-0099-42AC-8C7C-0C725D2E5B04} = {DDE23613-810C-4666-80A7-FCA3C504A895}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B50856FA-AB1C-4763-8F8D-A54A856DBC1A}
