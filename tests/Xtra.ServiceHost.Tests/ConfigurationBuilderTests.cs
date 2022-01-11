@@ -10,38 +10,37 @@ using Xunit;
 using Xunit.Abstractions;
 
 
-namespace Xtra.ServiceHost.Tests
+namespace Xtra.ServiceHost.Tests;
+
+public class ConfigurationBuilderTests
 {
-    public class ConfigurationBuilderTests
+    public ConfigurationBuilderTests(ITestOutputHelper output)
+        => Output = output;
+
+
+    [Fact]
+    public void ConfigurationBuilder_AddAzureKeyVaultWithAADSettings_RegistersProvider()
     {
-        public ConfigurationBuilderTests(ITestOutputHelper output)
-            => Output = output;
+        var baseConfig = new ConfigurationBuilder()
+            .AddInMemoryCollection(TestData)
+            .Build();
 
+        var settings = baseConfig.Get<CommonSettingsBase>();
 
-        [Fact]
-        public void ConfigurationBuilder_AddAzureKeyVaultWithAADSettings_RegistersProvider()
-        {
-            var baseConfig = new ConfigurationBuilder()
-                .AddInMemoryCollection(TestData)
-                .Build();
+        var builder = new ConfigurationBuilder()
+            .AddAzureKeyVault(settings.KeyVault, settings.AAD);
 
-            var settings = baseConfig.Get<CommonSettingsBase>();
-
-            var builder = new ConfigurationBuilder()
-                .AddAzureKeyVault(settings.KeyVault, settings.AAD);
-
-            Assert.NotEmpty(builder.Sources);
-        }
-
-
-        private ITestOutputHelper Output { get; init; }
-
-
-        private static Dictionary<string, string> TestData = new() {
-            { "KeyVault", "Vault-Test" },
-            { "AAD:TenantId", "FakeTenant" },
-            { "AAD:ClientId", Guid.Empty.ToString() },
-            { "AAD:ClientSecret", "FakeSecret" }
-        };
+        Assert.NotEmpty(builder.Sources);
     }
+
+
+    private ITestOutputHelper Output { get; init; }
+
+
+    private static Dictionary<string, string> TestData = new() {
+        { "KeyVault", "Vault-Test" },
+        { "AAD:TenantId", "FakeTenant" },
+        { "AAD:ClientId", Guid.Empty.ToString() },
+        { "AAD:ClientSecret", "FakeSecret" }
+    };
 }
