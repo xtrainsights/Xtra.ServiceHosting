@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31612.314
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xtra.ServiceHost", "src\Xtra.ServiceHost\Xtra.ServiceHost.csproj", "{29BF4467-BFF1-4BEB-910E-1C8E3FC34D61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xtra.ServiceHosting", "src\Xtra.ServiceHosting\Xtra.ServiceHosting.csproj", "{29BF4467-BFF1-4BEB-910E-1C8E3FC34D61}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E6EFFE1A-4882-497D-AA05-6B4B3199B910}"
 	ProjectSection(SolutionItems) = preProject
@@ -16,7 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{537F85B9-135
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DDE23613-810C-4666-80A7-FCA3C504A895}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtra.ServiceHost.Tests", "tests\Xtra.ServiceHost.Tests\Xtra.ServiceHost.Tests.csproj", "{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtra.ServiceHosting.Tests", "tests\Xtra.ServiceHosting.Tests\Xtra.ServiceHosting.Tests.csproj", "{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

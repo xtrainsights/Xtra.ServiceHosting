@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>Xtra.ServiceHost</AssemblyName>
-    <RootNamespace>Xtra.ServiceHost</RootNamespace>
     <Copyright>Copyright © Xxtra Research Pty Ltd 2018-2020</Copyright>
     <Description>Tooling for running hosted services</Description>
     <Company>Xtra Insights</Company>
