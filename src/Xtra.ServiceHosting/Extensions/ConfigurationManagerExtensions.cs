@@ -3,7 +3,7 @@
 using Xtra.Models.Settings;
 
 
-namespace Xtra.ServiceHost.Extensions;
+namespace Xtra.ServiceHosting.Extensions;
 
 public static class ConfigurationManagerExtensions
 {

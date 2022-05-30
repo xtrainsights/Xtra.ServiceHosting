@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using Xtra.ServiceHost.DependencyInjection;
-using Xtra.ServiceHost.Extensions;
+using Xtra.ServiceHosting.Extensions;
+using Xtra.ServiceHosting.DependencyInjection;
 
 using Xunit;
 
 
-namespace Xtra.ServiceHost.Tests;
+namespace Xtra.ServiceHosting.Tests;
 
 public class ServiceCollectionTests
 {

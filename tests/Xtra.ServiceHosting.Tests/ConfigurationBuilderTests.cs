@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 
 using Xtra.Models.Settings;
-using Xtra.ServiceHost.Extensions;
+using Xtra.ServiceHosting.Extensions;
 
 using Xunit;
 using Xunit.Abstractions;
 
 
-namespace Xtra.ServiceHost.Tests;
+namespace Xtra.ServiceHosting.Tests;
 
 public class ConfigurationBuilderTests
 {

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 
-namespace Xtra.ServiceHost;
+namespace Xtra.ServiceHosting;
 
 public abstract class WorkerService<T> : BackgroundService
 {

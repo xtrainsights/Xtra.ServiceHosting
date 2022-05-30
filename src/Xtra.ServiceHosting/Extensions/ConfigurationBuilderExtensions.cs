@@ -5,10 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 using Xtra.Models.Settings;
-using Xtra.Common.Identity;
+using Xtra.ServiceHosting.Identity;
 
 
-namespace Xtra.ServiceHost.Extensions;
+namespace Xtra.ServiceHosting.Extensions;
 
 public static class ConfigurationBuilderExtensions
 {

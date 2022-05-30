@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
-using Xtra.ServiceHost.DependencyInjection;
+
+using Xtra.ServiceHosting.DependencyInjection;
 
 
-namespace Xtra.ServiceHost.Extensions;
+namespace Xtra.ServiceHosting.Extensions;
 
 public static class ServiceCollectionExtensions
 {
