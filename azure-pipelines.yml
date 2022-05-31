@@ -50,19 +50,19 @@ steps:
     arguments: '--configuration $(buildConfiguration) --collect "Code Coverage" /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
     nobuild: true
 
-- task: DotNetCoreCLI@2
-  displayName: Pack
-  inputs:
-    command: 'pack'
-    packagesToPack: '**/*.csproj;!**/*Tests/*.csproj'
-    nobuild: true
-    versioningScheme: 'byEnvVar'
-    versionEnvVar: 'GitVersion.NuGetVersion'
+# - task: DotNetCoreCLI@2
+#   displayName: Pack
+#   inputs:
+#     command: 'pack'
+#     packagesToPack: '**/*.csproj;!**/*Tests/*.csproj'
+#     nobuild: true
+#     versioningScheme: 'byEnvVar'
+#     versionEnvVar: 'GitVersion.NuGetVersion'
 
-- task: DotNetCoreCLI@2
-  displayName: Push
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
-    nuGetFeedType: 'internal'
-    publishVstsFeed: '640f77ba-a1d6-45f8-a237-2fff94af3f1d'
+# - task: DotNetCoreCLI@2
+#   displayName: Push
+#   inputs:
+#     command: 'push'
+#     packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+#     nuGetFeedType: 'internal'
+#     publishVstsFeed: '640f77ba-a1d6-45f8-a237-2fff94af3f1d'
