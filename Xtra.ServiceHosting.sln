@@ -10,15 +10,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		azure-pipelines.yml = azure-pipelines.yml
 		Directory.Build.props = Directory.Build.props
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{537F85B9-1358-4C0A-B2F5-3993E92C9CC8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DDE23613-810C-4666-80A7-FCA3C504A895}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtra.ServiceHosting.Tests", "tests\Xtra.ServiceHosting.Tests\Xtra.ServiceHosting.Tests.csproj", "{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xtra.ServiceHosting.Tests", "tests\Xtra.ServiceHosting.Tests\Xtra.ServiceHosting.Tests.csproj", "{CF57F98B-0099-42AC-8C7C-0C725D2E5B04}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xtra.ServiceHosting.Identity", "src\Xtra.ServiceHosting.Identity\Xtra.ServiceHosting.Identity.csproj", "{DE738D93-093E-49D0-98D0-E300914DBCF4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xtra.ServiceHosting.Identity", "src\Xtra.ServiceHosting.Identity\Xtra.ServiceHosting.Identity.csproj", "{DE738D93-093E-49D0-98D0-E300914DBCF4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
