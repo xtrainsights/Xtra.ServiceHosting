@@ -29,7 +29,7 @@ public class AADCredential : TokenCredential
         }
 
         if (!String.IsNullOrEmpty(aadSettings.CertThumbprint)) {
-            var cert = CertificateFinder.Create()
+            var cert = new CertificateFinder()
                 .AddCommonStores()
                 .FirstOrDefault(x => x.Thumbprint.Equals(aadSettings.CertThumbprint, StringComparison.OrdinalIgnoreCase));
             creds.Add(new ClientCertificateCredential(aadSettings.TenantId, aadSettings.ClientId, cert));
