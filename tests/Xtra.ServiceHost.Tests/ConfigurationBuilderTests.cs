@@ -25,7 +25,7 @@ public class ConfigurationBuilderTests
             .AddInMemoryCollection(TestData)
             .Build();
 
-        var settings = baseConfig.Get<CommonSettingsBase>();
+        var settings = baseConfig.Get<CommonSettingsBase>()!;
 
         var builder = new ConfigurationBuilder()
             .AddAzureKeyVault(settings.KeyVault, settings.AAD);
@@ -37,7 +37,7 @@ public class ConfigurationBuilderTests
     private ITestOutputHelper Output { get; init; }
 
 
-    private static Dictionary<string, string> TestData = new() {
+    private static readonly Dictionary<string, string?> TestData = new() {
         { "KeyVault", "Vault-Test" },
         { "AAD:TenantId", "FakeTenant" },
         { "AAD:ClientId", Guid.Empty.ToString() },
