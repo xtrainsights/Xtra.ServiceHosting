@@ -10,21 +10,19 @@ namespace Xtra.ServiceHosting.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddFactory<T>(this IServiceCollection services)
+    public static IServiceCollection AddFactory<T>(this IServiceCollection services)
         where T : class
-    {
-        services.AddTransient<T>();
-        services.AddSingleton<Func<T>>(x => x.GetRequiredService<T>);
-    }
+        => services
+            .AddTransient<T>()
+            .AddSingleton<Func<T>>(x => x.GetRequiredService<T>);
 
 
-    public static void AddFactory<TService, TImplementation>(this IServiceCollection services)
+    public static IServiceCollection AddFactory<TService, TImplementation>(this IServiceCollection services)
         where TService : class
         where TImplementation : class, TService
-    {
-        services.AddTransient<TService, TImplementation>();
-        services.AddSingleton<Func<TService>>(x => x.GetRequiredService<TService>);
-    }
+        => services
+            .AddTransient<TService, TImplementation>()
+            .AddSingleton<Func<TService>>(x => x.GetRequiredService<TService>);
 
 
     public static IServiceCollection AddServiceBundle<T>(this IServiceCollection services)

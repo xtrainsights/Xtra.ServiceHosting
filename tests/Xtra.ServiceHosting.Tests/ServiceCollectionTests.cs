@@ -14,11 +14,40 @@ namespace Xtra.ServiceHosting.Tests;
 public class ServiceCollectionTests
 {
     [Fact]
+    public void ServiceCollection_AddFactory_OfImplementation()
+    {
+        var sc = new ServiceCollection();
+        sc.AddFactory<FooService>();
+
+        using var sp = sc.BuildServiceProvider();
+        var factory = sp.GetRequiredService<Func<FooService>>();
+
+        Assert.IsType<FooService>(factory());
+        Assert.NotSame(factory(), factory());
+    }
+
+
+    [Fact]
+    public void ServiceCollection_AddFactory_OfInterface()
+    {
+        var sc = new ServiceCollection();
+        sc.AddFactory<ITestService, FooService>();
+
+        using var sp = sc.BuildServiceProvider();
+        var factory = sp.GetRequiredService<Func<ITestService>>();
+
+        Assert.IsType<FooService>(factory());
+        Assert.NotSame(factory(), factory());
+    }
+
+
+    [Fact]
     public void ServiceCollection_AddServiceBundle_WithGenerics()
     {
         var sc = new ServiceCollection();
         sc.AddServiceBundle<FooBundle>();
-        var sp = sc.BuildServiceProvider();
+
+        using var sp = sc.BuildServiceProvider();
         Assert.IsType<FooService>(sp.GetRequiredService<FooService>());
     }
 
@@ -28,7 +57,8 @@ public class ServiceCollectionTests
     {
         var sc = new ServiceCollection();
         sc.AddServiceBundle(new FooBundle());
-        var sp = sc.BuildServiceProvider();
+
+        using var sp = sc.BuildServiceProvider();
         Assert.IsType<FooService>(sp.GetRequiredService<FooService>());
     }
 
@@ -38,7 +68,8 @@ public class ServiceCollectionTests
     {
         var sc = new ServiceCollection();
         sc.AddServiceBundles(new FooBundle(), new BarBundle());
-        var sp = sc.BuildServiceProvider();
+
+        using var sp = sc.BuildServiceProvider();
         Assert.IsType<FooService>(sp.GetRequiredService<FooService>());
         Assert.IsType<BarService>(sp.GetRequiredService<BarService>());
     }
@@ -49,7 +80,8 @@ public class ServiceCollectionTests
     {
         var sc = new ServiceCollection();
         sc.AddServiceBundles(new List<IServiceBundle> { new FooBundle(), new BarBundle() });
-        var sp = sc.BuildServiceProvider();
+
+        using var sp = sc.BuildServiceProvider();
         Assert.IsType<FooService>(sp.GetRequiredService<FooService>());
         Assert.IsType<BarService>(sp.GetRequiredService<BarService>());
     }
@@ -67,8 +99,11 @@ public class ServiceCollectionTests
     }
 
 
-    private class FooService { }
+    private interface ITestService { }
 
 
-    private class BarService { }
+    private class FooService : ITestService { }
+
+
+    private class BarService : ITestService { }
 }
