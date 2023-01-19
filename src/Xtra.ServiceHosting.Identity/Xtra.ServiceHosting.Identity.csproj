@@ -6,6 +6,7 @@
     <Company>Xtra Insights</Company>
     <Authors>Michael Monsour</Authors>
     <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

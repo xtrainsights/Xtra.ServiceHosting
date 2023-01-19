@@ -9,7 +9,7 @@ public static class ConfigurationManagerExtensions
 {
     public static IConfigurationBuilder AddAzureKeyVault(this ConfigurationManager configurationManager)
         => configurationManager.AddAzureKeyVault(
-            configurationManager["KeyVault"], 
+            configurationManager["KeyVault"],
             configurationManager.GetSection("AAD").Get<AADSettings>()
         );
 }

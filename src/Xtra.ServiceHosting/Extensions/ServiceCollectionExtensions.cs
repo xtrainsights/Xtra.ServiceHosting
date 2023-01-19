@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
         where T : class
     {
         services.AddTransient<T>();
-        services.AddSingleton<Func<T>>(x => x.GetService<T>);
+        services.AddSingleton<Func<T>>(x => x.GetRequiredService<T>);
     }
 
 
@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
         where TImplementation : class, TService
     {
         services.AddTransient<TService, TImplementation>();
-        services.AddSingleton<Func<TService>>(x => x.GetService<TService>);
+        services.AddSingleton<Func<TService>>(x => x.GetRequiredService<TService>);
     }
 
 

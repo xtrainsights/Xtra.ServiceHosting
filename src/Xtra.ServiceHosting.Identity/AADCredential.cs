@@ -16,7 +16,7 @@ namespace Xtra.ServiceHosting.Identity;
 
 public class AADCredential : TokenCredential
 {
-    public AADCredential(AADSettings aadSettings)
+    public AADCredential(AADSettings? aadSettings)
     {
         var creds = new List<TokenCredential>();
 

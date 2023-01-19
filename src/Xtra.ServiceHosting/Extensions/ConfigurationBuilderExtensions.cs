@@ -12,7 +12,7 @@ namespace Xtra.ServiceHosting.Extensions;
 
 public static class ConfigurationBuilderExtensions
 {
-    public static IConfigurationBuilder AddAzureKeyVault(this IConfigurationBuilder configurationBuilder, string keyVault, AADSettings aadSettings = null)
+    public static IConfigurationBuilder AddAzureKeyVault(this IConfigurationBuilder configurationBuilder, string? keyVault, AADSettings? aadSettings = null)
     {
         if (String.IsNullOrEmpty(keyVault)) {
             return configurationBuilder;
