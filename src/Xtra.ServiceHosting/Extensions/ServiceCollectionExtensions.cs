@@ -25,6 +25,12 @@ public static class ServiceCollectionExtensions
             .AddSingleton<Func<TService>>(x => x.GetRequiredService<TService>);
 
 
+    public static IServiceCollection AddFactory<T>(this IServiceCollection services, Func<T> factory)
+        where T : class
+        => services
+            .AddSingleton<Func<T>>(x => factory);
+
+
     public static IServiceCollection AddServiceBundle<T>(this IServiceCollection services)
         where T : IServiceBundle, new()
         => LoadBundle(services, Activator.CreateInstance<T>());
