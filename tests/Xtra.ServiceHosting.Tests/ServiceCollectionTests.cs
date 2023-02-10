@@ -42,6 +42,20 @@ public class ServiceCollectionTests
 
 
     [Fact]
+    public void ServiceCollection_AddFactory_OfDelegate()
+    {
+        var sc = new ServiceCollection();
+        sc.AddFactory<ITestService>(() => new FooService());
+
+        using var sp = sc.BuildServiceProvider();
+        var factory = sp.GetRequiredService<Func<ITestService>>();
+
+        Assert.IsType<FooService>(factory());
+        Assert.NotSame(factory(), factory());
+    }
+
+
+    [Fact]
     public void ServiceCollection_AddServiceBundle_WithGenerics()
     {
         var sc = new ServiceCollection();
