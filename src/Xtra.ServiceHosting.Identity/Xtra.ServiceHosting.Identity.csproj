@@ -13,7 +13,7 @@
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.2.2" />
     <PackageReference Include="Azure.Identity" Version="1.8.2" />
     <PackageReference Include="FluentCertificates.Finder" Version="0.8.0" />
-    <PackageReference Include="Xtra.Models" Version="0.2.0" />
+    <PackageReference Include="Xtra.Models" Version="0.2.1" />
   </ItemGroup>
 
 </Project>
