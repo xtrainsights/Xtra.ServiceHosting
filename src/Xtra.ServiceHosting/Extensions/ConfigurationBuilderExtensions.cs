@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using Microsoft.Extensions.Configuration;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 using Xtra.Models.Settings;
 using Xtra.ServiceHosting.Identity;
+using Xtra.ServiceHosting.TransformingConfiguration;
 
 
 namespace Xtra.ServiceHosting.Extensions;
@@ -68,6 +70,28 @@ public static class ConfigurationBuilderExtensions
         return config;
     }
 
+
+    /// <summary>
+    /// Provide a delegate that receives each config key &amp; value and returns a new/transformed config value. One useful
+    /// application of this would be dynamically expanding template tags within configuration values.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="transform"></param>
+    /// <returns>The transformed/updated value.</returns>
+    public static IConfigurationBuilder AddTransformingConfiguration(this IConfigurationBuilder builder, Func<string, string?, string?> transform)
+        => builder.Add(new TransformingConfigurationSource(builder.Build(), transform));
+
+
+    /// <summary>
+    /// Provide a delegate that receives each config KeyValuePair and returns a new/transformed config value. One useful
+    /// application of this would be dynamically expanding template tags within configuration values.
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="transform"></param>
+    /// <returns>The transformed/updated value.</returns>
+    public static IConfigurationBuilder AddTransformingConfiguration(this IConfigurationBuilder builder, Func<KeyValuePair<string, string?>, string?> transform)
+        => AddTransformingConfiguration(builder, (key, value) => transform(KeyValuePair.Create(key, value)));
+    
 
     private static bool GetReloadConfigOnChangeValue(HostBuilderContext hostingContext)
         => hostingContext.Configuration.GetValue("hostBuilder:reloadConfigOnChange", defaultValue: true);

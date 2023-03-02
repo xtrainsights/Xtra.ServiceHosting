@@ -34,6 +34,35 @@ public class ConfigurationBuilderTests
     }
 
 
+    [Fact]
+    public void ConfigurationBuilder_AddTransformingConfiguration_OutputsModifiedConfig()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(TestData)
+            .AddTransformingConfiguration(BasicTemplateExpander)
+            .Build();
+
+        Assert.Equal("Test App v1.0", config["AppTitle"]);
+    }
+
+
+    [Fact]
+    public void ConfigurationBuilder_AddTransformingConfiguration_OnlyModifiesPriorConfig()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(TestData)
+            .AddTransformingConfiguration(BasicTemplateExpander)
+            .AddInMemoryCollection(TestData) //This config provider is unaffected by the TransformingConfiguration above
+            .Build();
+
+        Assert.Equal("Test App {Version}", config["AppTitle"]);
+    }
+
+
+    private static string? BasicTemplateExpander(string key, string? value)
+        => value?.Replace("{Version}", "v1.0");
+
+
     private ITestOutputHelper Output { get; init; }
 
 
@@ -41,6 +70,7 @@ public class ConfigurationBuilderTests
         { "KeyVault", "Vault-Test" },
         { "AAD:TenantId", "FakeTenant" },
         { "AAD:ClientId", Guid.Empty.ToString() },
-        { "AAD:ClientSecret", "FakeSecret" }
+        { "AAD:ClientSecret", "FakeSecret" },
+        { "AppTitle", "Test App {Version}" }
     };
 }
