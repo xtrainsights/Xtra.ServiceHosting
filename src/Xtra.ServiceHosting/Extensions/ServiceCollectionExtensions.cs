@@ -10,58 +10,42 @@ namespace Xtra.ServiceHosting.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    [Obsolete("Use the AddFactory extension methods from the Xtra.Extensions.DependencyInjection namespace instead.")]
     public static IServiceCollection AddFactory<T>(this IServiceCollection services)
         where T : class
-        => services
-            .AddTransient<T>()
-            .AddSingleton<Func<T>>(x => x.GetRequiredService<T>);
+        => Xtra.Extensions.DependencyInjection.ServiceCollectionExtensions.AddFactory<T>(services);
 
 
+    [Obsolete("Use the AddFactory extension methods from the Xtra.Extensions.DependencyInjection namespace instead.")]
     public static IServiceCollection AddFactory<TService, TImplementation>(this IServiceCollection services)
         where TService : class
         where TImplementation : class, TService
-        => services
-            .AddTransient<TService, TImplementation>()
-            .AddSingleton<Func<TService>>(x => x.GetRequiredService<TService>);
+        => Xtra.Extensions.DependencyInjection.ServiceCollectionExtensions.AddFactory<TService, TImplementation>(services);
 
 
+    [Obsolete("Use the AddFactory extension methods from the Xtra.Extensions.DependencyInjection namespace instead.")]
     public static IServiceCollection AddFactory<T>(this IServiceCollection services, Func<T> factory)
         where T : class
-        => services
-            .AddSingleton<Func<T>>(x => factory);
+        => Xtra.Extensions.DependencyInjection.ServiceCollectionExtensions.AddFactory(services, factory);
 
 
+    [Obsolete("Use the AddServiceBundle extension methods from the Xtra.Extensions.DependencyInjection namespace instead.")]
     public static IServiceCollection AddServiceBundle<T>(this IServiceCollection services)
         where T : IServiceBundle, new()
-        => LoadBundle(services, Activator.CreateInstance<T>());
+        => Xtra.Extensions.DependencyInjection.ServiceCollectionExtensions.AddServiceBundle<T>(services);
 
 
+    [Obsolete("Use the AddServiceBundle extension methods from the Xtra.Extensions.DependencyInjection namespace instead.")]
     public static IServiceCollection AddServiceBundle(this IServiceCollection services, IServiceBundle bundle)
-        => LoadBundle(services, bundle);
+        => Xtra.Extensions.DependencyInjection.ServiceCollectionExtensions.AddServiceBundle(services, bundle);
 
 
+    [Obsolete("Use the AddServiceBundles extension methods from the Xtra.Extensions.DependencyInjection namespace instead.")]
     public static IServiceCollection AddServiceBundles(this IServiceCollection services, params IServiceBundle[] bundles)
-        => LoadBundles(services, bundles);
+        => Xtra.Extensions.DependencyInjection.ServiceCollectionExtensions.AddServiceBundles(services, bundles);
 
 
+    [Obsolete("Use the AddServiceBundles extension methods from the Xtra.Extensions.DependencyInjection namespace instead.")]
     public static IServiceCollection AddServiceBundles(this IServiceCollection services, IEnumerable<IServiceBundle> bundles)
-        => LoadBundles(services, bundles);
-
-
-    private static IServiceCollection LoadBundle<T>(IServiceCollection services, T bundle)
-        where T : IServiceBundle
-    {
-        bundle.Load(services);
-        return services;
-    }
-
-
-    private static IServiceCollection LoadBundles(IServiceCollection services, IEnumerable<IServiceBundle> bundles)
-    {
-        foreach (var bundle in bundles) {
-            bundle.Load(services);
-        }
-
-        return services;
-    }
+        => Xtra.Extensions.DependencyInjection.ServiceCollectionExtensions.AddServiceBundles(services, bundles);
 }

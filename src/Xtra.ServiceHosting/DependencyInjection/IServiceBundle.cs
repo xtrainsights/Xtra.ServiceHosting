@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
 
 namespace Xtra.ServiceHosting.DependencyInjection;
 
-public interface IServiceBundle
-{
-    void Load(IServiceCollection services);
-}
+[Obsolete("Use Xtra.Extensions.DependencyInjection.IServiceBundle instead.")]
+public interface IServiceBundle : Xtra.Extensions.DependencyInjection.IServiceBundle { }
