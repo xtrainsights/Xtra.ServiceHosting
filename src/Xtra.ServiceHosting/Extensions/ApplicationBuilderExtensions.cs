@@ -14,9 +14,9 @@ public static class ApplicationBuilderExtensions
     /// <param name="builder"></param>
     /// <param name="startsWithPath">Restricts the cancellation-suppression to path requests which begin with this value. When null (default) or empty, cancellation-suppression will occur on all requests.</param>
     /// <returns></returns>
-    public static IApplicationBuilder UseCancellationSuppression(this IApplicationBuilder builder, string startsWithPath = null)
+    public static IApplicationBuilder UseCancellationSuppression(this IApplicationBuilder builder, string? startsWithPath = null)
         => builder.UseMiddleware<CancellationSuppressionMiddleware>(
-            Options.Create(new CancellationSuppressionSettings() {
+            Options.Create(new CancellationSuppressionSettings {
                 StartsWithPath = startsWithPath
             }));
 }

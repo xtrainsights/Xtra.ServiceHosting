@@ -29,10 +29,10 @@ public class AADCredential : TokenCredential
         }
 
         if (!String.IsNullOrEmpty(aadSettings.CertThumbprint)) {
-            var cert = new CertificateFinder()
+            var result = new CertificateFinder()
                 .AddCommonStores()
-                .FirstOrDefault(x => x.Thumbprint.Equals(aadSettings.CertThumbprint, StringComparison.OrdinalIgnoreCase));
-            creds.Add(new ClientCertificateCredential(aadSettings.TenantId, aadSettings.ClientId, cert));
+                .First(x => x.Certificate.Thumbprint.Equals(aadSettings.CertThumbprint, StringComparison.OrdinalIgnoreCase));
+            creds.Add(new ClientCertificateCredential(aadSettings.TenantId, aadSettings.ClientId, result.Certificate));
         }
 
         if (!String.IsNullOrEmpty(aadSettings.ClientSecret)) {

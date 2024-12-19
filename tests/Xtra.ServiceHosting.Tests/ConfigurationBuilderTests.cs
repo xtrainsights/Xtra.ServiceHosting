@@ -12,12 +12,8 @@ using Xunit.Abstractions;
 
 namespace Xtra.ServiceHosting.Tests;
 
-public class ConfigurationBuilderTests
+public class ConfigurationBuilderTests(ITestOutputHelper output)
 {
-    public ConfigurationBuilderTests(ITestOutputHelper output)
-        => Output = output;
-
-
     [Fact]
     public void ConfigurationBuilder_AddAzureKeyVaultWithAADSettings_RegistersProvider()
     {
@@ -63,7 +59,7 @@ public class ConfigurationBuilderTests
         => value?.Replace("{Version}", "v1.0");
 
 
-    private ITestOutputHelper Output { get; init; }
+    private ITestOutputHelper Output { get; init; } = output;
 
 
     private static readonly Dictionary<string, string?> TestData = new() {

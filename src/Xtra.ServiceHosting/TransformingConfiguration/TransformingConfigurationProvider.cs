@@ -8,15 +8,9 @@ using Microsoft.Extensions.Primitives;
 
 namespace Xtra.ServiceHosting.TransformingConfiguration;
 
-public class TransformingConfigurationProvider : IConfigurationProvider
+public class TransformingConfigurationProvider(IConfigurationRoot root, Func<string, string?, string?> transform)
+    : IConfigurationProvider
 {
-    public TransformingConfigurationProvider(IConfigurationRoot root, Func<string, string?, string?> transform)
-    {
-        _config = new TransformingConfigurationRoot(root);
-        _transform = transform;
-    }
-
-
     public IEnumerable<string> GetChildKeys(IEnumerable<string> earlierKeys, string? parentPath)
     {
         var section = parentPath == null ? _config : _config.GetSection(parentPath);
@@ -39,11 +33,10 @@ public class TransformingConfigurationProvider : IConfigurationProvider
 
     public bool TryGet(string key, out string? value)
     {
-        value = _transform(key, _config[key]);
+        value = transform(key, _config[key]);
         return value != null;
     }
 
 
-    private readonly IConfiguration _config;
-    private readonly Func<string, string?, string?> _transform;
+    private readonly IConfiguration _config = new TransformingConfigurationRoot(root);
 }

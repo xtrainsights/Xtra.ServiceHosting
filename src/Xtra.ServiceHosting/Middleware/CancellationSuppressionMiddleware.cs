@@ -12,20 +12,13 @@ namespace Xtra.ServiceHosting.Middleware;
 /// Adapted from: https://github.com/dotnet/aspnetcore/issues/28568#issuecomment-784013537
 /// Relevant Link: https://stackoverflow.com/questions/73791547/get-httpclient-to-abort-the-connection
 /// </summary>
-internal class CancellationSuppressionMiddleware
+internal class CancellationSuppressionMiddleware(RequestDelegate next, IOptions<CancellationSuppressionSettings> options)
 {
-    public CancellationSuppressionMiddleware(RequestDelegate next, IOptions<CancellationSuppressionSettings> options)
-    {
-        _next = next;
-        _options = options;
-    }
-
-
     public async Task InvokeAsync(HttpContext? httpContext)
     {
         try {
             //Forward to next middleware
-            await _next(httpContext);
+            await next(httpContext);
 
         } catch (OperationCanceledException) {
             //Note TaskCanceledException inherits from OperationCanceledException (so this works for both)
@@ -52,10 +45,6 @@ internal class CancellationSuppressionMiddleware
     /// <param name="httpContext"></param>
     /// <returns></returns>
     protected bool ShouldHandle(HttpContext httpContext)
-        => String.IsNullOrEmpty(_options.Value.StartsWithPath)
-            || httpContext.Request.Path.StartsWithSegments(_options.Value.StartsWithPath);
-
-
-    private readonly RequestDelegate _next;
-    private readonly IOptions<CancellationSuppressionSettings> _options;
+        => String.IsNullOrEmpty(options.Value.StartsWithPath)
+            || httpContext.Request.Path.StartsWithSegments(options.Value.StartsWithPath);
 }

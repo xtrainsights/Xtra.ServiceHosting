@@ -2,5 +2,5 @@
 
 internal class CancellationSuppressionSettings
 {
-    public string StartsWithPath { get; set; }
+    public string? StartsWithPath { get; init; }
 }

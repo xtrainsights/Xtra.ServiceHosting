@@ -20,23 +20,22 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Setup GitVersion
-      uses: gittools/actions/gitversion/setup@v0.10.2
-      with:
-        versionSpec: 5.x
-
-    - name: Execute GitVersion
-      uses: gittools/actions/gitversion/execute@v0.10.2
-      id: gitversion
-      with:
-        additionalArguments: /output BuildServer
-        useConfigFile: true
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-quality: 'ga'
-        dotnet-version: 8.x
+        dotnet-version: 9.x
+
+    - name: Setup GitVersion
+      uses: gittools/actions/gitversion/setup@v3.1.1
+      with:
+        versionSpec: 5.x
+
+    - name: Execute GitVersion
+      uses: gittools/actions/gitversion/execute@v3.1.1
+      id: gitversion
+      with:
+        useConfigFile: true
 
     - name: Restore
       run: dotnet restore
@@ -54,6 +53,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: nuget
+        compression-level: 0
         path: |
           ${{ github.workspace }}/artifacts/*.nupkg
           ${{ github.workspace }}/artifacts/*.snupkg
