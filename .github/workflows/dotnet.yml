@@ -23,8 +23,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-quality: 'ga'
-        dotnet-version: 9.x
+        dotnet-version: 10.x
 
     - name: Setup GitVersion
       uses: gittools/actions/gitversion/setup@v3.1.1

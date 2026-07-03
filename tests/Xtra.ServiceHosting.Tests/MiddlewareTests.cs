@@ -1,17 +1,9 @@
 using System;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-using Xtra.ServiceHosting.Extensions;
 using Xtra.ServiceHosting.Middleware;
 
 using Xunit;
